@@ -1,21 +1,18 @@
 # java-upgrade-demo
 
-Sample project used to demonstrate an **upgrade from Java 11 + Spring Boot 2.7** to
+Sample project demonstrating an upgrade from Java 11 + Spring Boot 2.7 to
 **Java 17 + Spring Boot 3.x**.
 
-The `main` branch intentionally contains the *"old"* version with the classic pain
-points you hit during an upgrade:
+Current stack:
 
-- `pom.xml` with `<java.version>11</java.version>` and Spring Boot `2.7.x`
-- `javax.persistence`, `javax.validation`, `javax.servlet` imports
-- An old Lombok version (`1.18.22`) that fails on JDK 17 without a bump
-- MapStruct 1.5.3 (fine) but coupled with the `javax` annotations
-- A legacy test written with JUnit 4 + `SpringRunner`
-- Spring Security configured with the (now-deprecated) `WebSecurityConfigurerAdapter`
-- A GitHub Actions workflow pinned to `actions/setup-java@v2` and Java `11`
-
-The upgrade is performed in a dedicated branch and opened as a PR so you can see
-every diff in one place.
+- Java 17 (`<java.version>17</java.version>`, `maven-compiler` source/target `17`)
+- Spring Boot `3.2.5` (parent pom)
+- `jakarta.persistence`, `jakarta.validation`, `jakarta.servlet` imports
+- Lombok `1.18.32` with `lombok-mapstruct-binding` annotation processor
+- MapStruct `1.5.5.Final`
+- Spring Security 6 configured via a `SecurityFilterChain` bean (no more `WebSecurityConfigurerAdapter`)
+- JUnit 5 only (the legacy JUnit 4 test and dependency have been removed)
+- GitHub Actions workflow on `actions/checkout@v4`, `actions/setup-java@v4`, Java `17`
 
 ## Build
 
