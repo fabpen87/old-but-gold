@@ -1,27 +1,26 @@
 package com.example.demo.config;
 
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
-import org.springframework.security.config.annotation.web.configuration.WebSecurityConfigurerAdapter;
+import org.springframework.security.web.SecurityFilterChain;
 
-/**
- * Spring Security configuration using the classic (pre-Spring Security 5.7)
- * {@link WebSecurityConfigurerAdapter} style. This is deprecated from Spring
- * Security 5.7 and <b>removed</b> in Spring Security 6 / Spring Boot 3.
- */
+import static org.springframework.security.config.Customizer.withDefaults;
+
 @Configuration
 @EnableWebSecurity
-public class SecurityConfig extends WebSecurityConfigurerAdapter {
+public class SecurityConfig {
 
-    @Override
-    protected void configure(HttpSecurity http) throws Exception {
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
         http
-                .csrf().disable()
-                .authorizeRequests()
-                .antMatchers("/api/greet").permitAll()
+            .csrf(csrf -> csrf.disable())
+            .authorizeHttpRequests(auth -> auth
+                .requestMatchers("/api/greet").permitAll()
                 .anyRequest().authenticated()
-                .and()
-                .httpBasic();
+            )
+            .httpBasic(withDefaults());
+        return http.build();
     }
 }
