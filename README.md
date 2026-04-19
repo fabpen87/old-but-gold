@@ -30,3 +30,18 @@ every diff in one place.
 # GET http://localhost:8080/api/greet
 # GET http://localhost:8080/api/users   (basic auth: user / password printed in logs)
 ```
+
+## Documentation
+
+Detailed reference documentation lives under [`docs/`](./docs) and feeds the generated wiki:
+
+- [Architecture Diagrams](docs/architecture.md) — request flow, package structure, compile-time code generation
+- [API Reference](docs/api-reference.md) — every REST endpoint with curl examples
+- [Configuration Reference](docs/configuration-reference.md) — every property in `application.yml`
+- [Database Schema & Data Model](docs/database-schema.md) — `users` table DDL, id strategy, H2 console
+- [Development Environment Setup](docs/development-setup.md) — JDK, IDE, Maven wrapper, smoke tests
+- [Upgrade Guide — Java 11 → 17, Spring Boot 2.7 → 3](docs/upgrade-guide.md) — exhaustive before/after diffs
+- [Post-Upgrade Verification Checklist](docs/post-upgrade-checklist.md) — operational sign-off checklist
+- [Troubleshooting & Common Errors](docs/troubleshooting.md) — real error messages and fixes
+- [Known Limitations & Technical Debt](docs/known-limitations.md) — what is deliberately skipped
+- [Annotation Processing Deep Dive](docs/annotation-processing.md) — Lombok + MapStruct ordering
