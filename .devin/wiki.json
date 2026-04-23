@@ -1,0 +1,219 @@
+{
+  "repo_notes": [
+    {
+      "content": "This repository is a reference fixture for a Java 11 + Spring Boot 2.7.18 -> Java 17 + Spring Boot 3 upgrade. The main branch is intentionally kept on the 'old' baseline so diffs against an upgrade branch tell the full migration story. Package layout is com.example.demo with five subpackages: config (SecurityConfig), web (GreetingController, UserController), mapper (UserMapper MapStruct interface), domain (User JPA entity, UserRepository), dto (UserDto with Bean Validation). H2 in-memory database, HTTP Basic auth on /api/users/**, /api/greet is public. Lombok 1.18.22 + MapStruct 1.5.3 are wired through annotationProcessorPaths in pom.xml lines 101-112 with Lombok declared FIRST so getters/setters exist before MapStruct runs.",
+      "author": "fabpen87"
+    },
+    {
+      "content": "Rich markdown reference documentation lives under docs/ and should be treated as a primary source when generating wiki pages. The files are: docs/architecture.md (three Mermaid diagrams: request flow, package structure, compile-time code generation), docs/api-reference.md (every REST endpoint with curl examples and source line references), docs/configuration-reference.md (every property in application.yml in table form), docs/database-schema.md (users table DDL, GenerationType.IDENTITY strategy, equals/hashCode JPA pitfalls, H2 console setup), docs/development-setup.md (JDK, IDE, Maven wrapper), docs/troubleshooting.md (common upgrade errors with fixes), docs/upgrade-guide.md (exhaustive before/after diffs for SecurityConfig, User, UserDto, UserController, GreetingController, LegacyJunit4Test, ci.yml, pom.xml), docs/post-upgrade-checklist.md (operational checklist), docs/known-limitations.md (technical debt catalogue), docs/annotation-processing.md (Lombok vs MapStruct ordering, lombok-mapstruct-binding).",
+      "author": "fabpen87"
+    },
+    {
+      "content": "Wiki style conventions to preserve: every page opens with a '<details><summary>Relevant source files</summary>' block, bullets cite file paths, prose references source with inline citations like [pom.xml:101-112]() or [SecurityConfig.java:14-20](), Mermaid diagrams are labelled with a bold '**Diagram: <Name>**' line above the code fence, tables use the '| :--- |' alignment syntax, and every major section ends with a 'Sources:' line listing the cited files with line ranges. Keep that exact style for every generated page."
+    }
+  ],
+  "pages": [
+    {
+      "title": "Overview",
+      "purpose": "Executive summary of the java-upgrade-demo project: purpose (migration fixture), technical stack (Java 11, Spring Boot 2.7.18, H2, Lombok, MapStruct, JUnit 4+5), high-level logical architecture diagram, build commands (./mvnw clean verify, spring-boot:run), and a pointer to the per-area pages.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Anchor the page on README.md lines 1-32, pom.xml lines 8-27, and src/main/java/com/example/demo/DemoApplication.java lines 1-12. Include one high-level Mermaid diagram that mirrors the 'Logical Architecture to Code Entity Mapping' shape already in the existing wiki. Point to 'Architecture Diagrams' for the deep-dive view."}
+      ]
+    },
+    {
+      "title": "Getting Started: Build & Run",
+      "purpose": "Step-by-step: clone, ./mvnw clean verify, ./mvnw spring-boot:run, curl against /api/greet and /api/users. Mention HTTP Basic credentials user/password from application.yml lines 11-13.",
+      "parent": "Overview",
+      "page_notes": [
+        {"content": "Prefer the content style from docs/development-setup.md for prerequisites and verification. Cite README.md lines 20-32 and application.yml lines 1-15."}
+      ]
+    },
+    {
+      "title": "Java 11 -> Java 17 Upgrade Context",
+      "purpose": "Why the baseline is on Java 11 + Spring Boot 2.7.18, which 'pain points' are intentional (javax imports, WebSecurityConfigurerAdapter, antMatchers, old Lombok, junit-vintage), and how the upgrade branch solves them.",
+      "parent": "Overview",
+      "page_notes": [
+        {"content": "Derive content from README.md lines 3-18. Link forward to 'Upgrade Guide' for the exact diffs, 'Troubleshooting & Common Errors' for error-first narrative, and 'Post-Upgrade Verification Checklist' for sign-off."}
+      ]
+    },
+    {
+      "title": "Application Architecture",
+      "purpose": "Landing page for the architectural deep-dive. Summarises the five-package layout (config, web, mapper, domain, dto) and links to the per-layer pages.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Include a small overview Mermaid diagram and a responsibilities table. Point readers at 'Architecture Diagrams' for the three in-depth diagrams. Cite DemoApplication.java lines 1-12."}
+      ]
+    },
+    {
+      "title": "Architecture Diagrams",
+      "purpose": "Canonical architectural reference with THREE Mermaid diagrams: (1) Request Flow end-to-end from HTTP client through Tomcat, SecurityFilterChain, controllers, mapper/repository to H2, (2) Package Structure showing DemoApplication and its five subpackages, (3) Compile-Time Code Generation showing Lombok -> MapStruct ordering.",
+      "parent": "Application Architecture",
+      "page_notes": [
+        {"content": "This page MUST be based on docs/architecture.md and preserve ALL THREE Mermaid diagrams verbatim. The Request Flow diagram uses subgraphs named 'com.example.demo.web', 'com.example.demo.mapper', 'com.example.demo.domain', 'com.example.demo.dto', 'com.example.demo.config'. The Package Structure diagram is a graph LR from DemoApplication to each subpackage and then to concrete files. The Compile-Time Code Generation diagram is: Lombok AP -> User.class/UserDto.class -> MapStruct AP -> UserMapperImpl.class."},
+        {"content": "Explain Request Flow step by step referring to SecurityConfig.java lines 10-21, GreetingController.java lines 11-14, UserController.java lines 20-47, UserMapper.java lines 10-19, UserRepository.java lines 3-6, User.java lines 21-54, application.yml lines 1-15. Explain the Package Structure with a responsibilities table mirroring docs/architecture.md. Explain the Compile-Time diagram emphasising that pom.xml lines 101-112 declare Lombok BEFORE MapStruct."}
+      ]
+    },
+    {
+      "title": "Web Layer: REST Controllers",
+      "purpose": "Detailed walk-through of GreetingController and UserController: request mappings, @Valid, Optional-based 404 pattern, use of UserMapper, use of URI.create for Location header, interaction with UserRepository.",
+      "parent": "Application Architecture",
+      "page_notes": [
+        {"content": "Cite GreetingController.java lines 1-15 and UserController.java lines 1-47. Include a table of endpoints and their behaviour. Flag the javax.servlet.http.HttpServletRequest import on GreetingController.java line 6 and javax.validation.Valid on UserController.java line 16 as upgrade pain points."}
+      ]
+    },
+    {
+      "title": "Domain Layer: Entity & Repository",
+      "purpose": "Document User JPA entity (Lombok annotations, @Id + GenerationType.IDENTITY, custom equals/hashCode) and UserRepository (Spring Data JPA interface).",
+      "parent": "Application Architecture",
+      "page_notes": [
+        {"content": "Cite User.java lines 1-55 and UserRepository.java lines 1-6. Include the custom equals/hashCode code snippet (User.java lines 43-54) and explain the nullable-id pitfall; cross-reference 'Database Schema & Data Model' and 'Known Limitations & Technical Debt'."}
+      ]
+    },
+    {
+      "title": "DTO & Mapper Layer",
+      "purpose": "Document UserDto validation constraints and UserMapper (MapStruct interface with componentModel = 'spring' and @Mapping(target='id', ignore=true)).",
+      "parent": "Application Architecture",
+      "page_notes": [
+        {"content": "Cite UserDto.java lines 1-27 and UserMapper.java lines 1-19. Explain that UserMapperImpl is generated at compile time into target/generated-sources/annotations/. Link forward to 'Annotation Processing Deep Dive' for the ordering rationale."}
+      ]
+    },
+    {
+      "title": "Security Configuration",
+      "purpose": "Describe SecurityConfig: extends WebSecurityConfigurerAdapter (DEPRECATED), CSRF disabled, /api/greet permitAll, everything else authenticated via HTTP Basic. Credentials sourced from application.yml.",
+      "parent": "Application Architecture",
+      "page_notes": [
+        {"content": "Cite SecurityConfig.java lines 1-22 and application.yml lines 10-13. Include the configure(HttpSecurity) snippet. Call out three upgrade implications: (a) WebSecurityConfigurerAdapter removed in Spring Security 6, (b) antMatchers -> requestMatchers, (c) authorizeRequests -> authorizeHttpRequests. Cross-reference 'Upgrade Guide' for the rewritten SecurityFilterChain bean."}
+      ]
+    },
+    {
+      "title": "API Reference",
+      "purpose": "Full REST API reference: GET /api/greet (public, text/plain), GET /api/users (HTTP Basic, JSON array), GET /api/users/{id} (200 or 404), POST /api/users (201 with Location header, 400 on validation failure). Include curl examples and authenticated/unauthenticated variants.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Base this page on docs/api-reference.md. Keep the overview table at the top. For each endpoint include Auth, Response, Source lines, a successful curl example with its response headers/body, and (where relevant) a failure-case curl example. Cite GreetingController.java lines 11-14, UserController.java lines 28-31, 33-39, 41-46, UserDto.java lines 20-26, and SecurityConfig.java lines 14-21."}
+      ]
+    },
+    {
+      "title": "Configuration Reference",
+      "purpose": "Document every property in src/main/resources/application.yml (15 lines) as a table: datasource url/username/password, jpa.hibernate.ddl-auto, jpa.show-sql, security.user.name/password, server.port. Include alternatives for ddl-auto and override precedence.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Base this page on docs/configuration-reference.md. Include (a) the full application.yml file as a code block, (b) a property-by-property table with Value / Line / Purpose columns, (c) a ddl-auto alternatives table (none / validate / update / create / create-drop), (d) a note on spring.security.user credentials flowing into the auto-configured InMemoryUserDetailsManager, (e) override precedence (CLI args > env vars > external file > packaged defaults). Cite application.yml lines 1-15."}
+      ]
+    },
+    {
+      "title": "Database Schema & Data Model",
+      "purpose": "Document the single 'users' table DDL, the GenerationType.IDENTITY strategy and its write-batching implications, the custom equals/hashCode nullable-id pitfall, and how to enable the H2 web console for local inspection.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Base this page on docs/database-schema.md. Include (a) derived DDL code block, (b) column->Java field table, (c) identity-generation discussion, (d) equals/hashCode snippet from User.java lines 43-54 with consequences, (e) H2 console enablement snippet plus the corresponding SecurityConfig tweak to permitAll /h2/** and frameOptions().sameOrigin(). Cite User.java lines 1-55, UserRepository.java lines 1-6, application.yml lines 1-15, pom.xml lines 34-50."}
+      ]
+    },
+    {
+      "title": "Development Environment Setup",
+      "purpose": "Local setup guide: JDK 11 (Temurin) installation across macOS/Linux/Windows, Maven wrapper usage, ./mvnw clean verify expected outputs, IntelliJ IDEA configuration (enable annotation processing, Lombok plugin, project SDK), VS Code extensions, useful Maven targets, verification artifacts (target/generated-sources, surefire reports).",
+      "parent": null,
+      "page_notes": [
+        {"content": "Base this page on docs/development-setup.md. Preserve the prerequisites table, the JDK install commands per OS, the IntelliJ and VS Code sections, and the 'Useful Maven targets' code block. Cite README.md lines 23-32, pom.xml lines 22-27 and 95-114, application.yml lines 1-15, DemoApplication.java lines 1-12."}
+      ]
+    },
+    {
+      "title": "Build & CI Infrastructure",
+      "purpose": "Landing page that ties together the Maven build (pom.xml) and the GitHub Actions workflow. Links to the three sub-pages.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Keep it short. Point to 'Maven Project Configuration (pom.xml)', 'GitHub Actions CI Pipeline', and 'Annotation Processing Deep Dive'. Cite pom.xml and .github/workflows/ci.yml."}
+      ]
+    },
+    {
+      "title": "Maven Project Configuration (pom.xml)",
+      "purpose": "Explain pom.xml structure: Spring Boot parent 2.7.18, Java 11 properties, dependencies (web, data-jpa, validation, security, h2, lombok provided, mapstruct, test, security-test, junit-vintage-engine), build plugins (spring-boot-maven-plugin with lombok exclude, maven-compiler-plugin with annotationProcessorPaths).",
+      "parent": "Build & CI Infrastructure",
+      "page_notes": [
+        {"content": "Cite pom.xml lines 1-117 (especially 8-13 parent, 21-27 properties, 29-78 dependencies, 81-114 build plugins, 101-112 annotationProcessorPaths). Highlight three upgrade-sensitive spots: the parent version bump, the lombok version bump, and the removal of junit-vintage-engine."}
+      ]
+    },
+    {
+      "title": "GitHub Actions CI Pipeline",
+      "purpose": "Explain the .github/workflows/ci.yml pipeline: checkout@v3, setup-java@v2 with distribution 'adopt' and java-version '11', single 'mvn -B -ntp clean verify' step. Call out that both actions are deprecated.",
+      "parent": "Build & CI Infrastructure",
+      "page_notes": [
+        {"content": "Cite .github/workflows/ci.yml lines 1-21. Cross-reference 'Upgrade Guide' for the v4/temurin/17 rewrite."}
+      ]
+    },
+    {
+      "title": "Annotation Processing Deep Dive",
+      "purpose": "Deep technical explanation of why Lombok must be declared BEFORE MapStruct in <annotationProcessorPaths>, what happens when the order is reversed, the lombok-mapstruct-binding bridge processor and when it is needed (Lombok >=1.18.20 + MapStruct <1.5), the difference between <dependencies> scope=provided and <annotationProcessorPaths>, and IDE caveats (IntelliJ annotation processing toggle, Lombok plugin, VS Code redhat.java).",
+      "parent": "Build & CI Infrastructure",
+      "page_notes": [
+        {"content": "Base this page on docs/annotation-processing.md. Include (a) processors-involved table, (b) the 'No implementation was created for UserMapper' error, (c) the annotationProcessorPaths code block from pom.xml lines 101-112, (d) the reversed-order failure sequence, (e) the lombok-mapstruct-binding version matrix, (f) the runtime-vs-processor-classpath distinction, (g) IDE notes. Cite pom.xml lines 25-26, 52-62, 95-114, 101-112 and User.java lines 3-8, UserDto.java lines 3-6, UserMapper.java lines 1-19, UserController.java lines 22-26."}
+      ]
+    },
+    {
+      "title": "Testing",
+      "purpose": "Landing page for the testing story. Summarises JUnit 5 (primary) + JUnit 4 via Vintage engine (legacy). Points to the two sub-pages.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Mention the three test classes: DemoApplicationTests, UserControllerTest (both JUnit 5), LegacyJunit4Test (JUnit 4 via Vintage). Cite pom.xml lines 64-78."}
+      ]
+    },
+    {
+      "title": "JUnit 5 Integration Tests",
+      "purpose": "Document DemoApplicationTests (context loads) and UserControllerTest (MockMvc + @WithMockUser + csrf()). Explain the @SpringBootTest + @AutoConfigureMockMvc pattern and the use of SecurityMockMvcRequestPostProcessors.csrf() in POST.",
+      "parent": "Testing",
+      "page_notes": [
+        {"content": "Cite DemoApplicationTests.java lines 1-12 and UserControllerTest.java lines 1-47. Include the csrf() snippet on line 40 and explain that CSRF is still enabled for the test slice even though SecurityConfig.java line 15 disables it in production — the test uses a Spring Security test helper to attach a token."}
+      ]
+    },
+    {
+      "title": "Legacy JUnit 4 Test",
+      "purpose": "Document LegacyJunit4Test: @RunWith(SpringRunner.class), @SpringBootTest, @Test (org.junit.Test), assertNotNull. Explain why junit-vintage-engine is required on the classpath and what the JUnit 5 migration looks like.",
+      "parent": "Testing",
+      "page_notes": [
+        {"content": "Cite LegacyJunit4Test.java lines 1-23 and pom.xml lines 74-78. Provide the JUnit 5 rewrite (change imports to org.junit.jupiter.api.*, drop @RunWith, lower class/method visibility) and note that after migration junit-vintage-engine can be removed."}
+      ]
+    },
+    {
+      "title": "Upgrade Guide - Java 11 to 17, Spring Boot 2.7 to 3",
+      "purpose": "Exhaustive before/after diff reference: pom.xml (parent 2.7.18 -> 3.2.5, java.version 11 -> 17, lombok 1.18.22 -> 1.18.30, drop junit-vintage-engine), SecurityConfig.java (WebSecurityConfigurerAdapter -> SecurityFilterChain bean + lambda DSL + requestMatchers), User.java (javax.persistence/javax.validation -> jakarta.*), UserDto.java and UserController.java (javax.validation -> jakarta.validation), GreetingController.java (javax.servlet -> jakarta.servlet), LegacyJunit4Test (JUnit 4 -> JUnit 5), .github/workflows/ci.yml (checkout@v4, setup-java@v4, temurin, Java 17, cache: maven).",
+      "parent": null,
+      "page_notes": [
+        {"content": "Base this page on docs/upgrade-guide.md. Preserve every ```diff``` and ```java``` / ```yaml``` code block verbatim. Each section ends with an explicit 'Reference: <file> lines X-Y' or a 'Sources:' list."},
+        {"content": "Emphasise that the rewrite is mostly mechanical: imports (javax -> jakarta), renamed APIs (antMatchers -> requestMatchers, authorizeRequests -> authorizeHttpRequests), removed types (WebSecurityConfigurerAdapter), and one-line bumps (parent version, lombok version, setup-java/checkout action versions). Point readers to 'Troubleshooting & Common Errors' when a diff produces an error and to 'Post-Upgrade Verification Checklist' to sign off."}
+      ]
+    },
+    {
+      "title": "Post-Upgrade Verification Checklist",
+      "purpose": "Operational sign-off checklist grouping verification steps into: Build & compile, Source imports (grep javax.*), Security configuration (no WebSecurityConfigurerAdapter, requestMatchers), Tests (drop junit-vintage-engine, drop SpringRunner), pom.xml (3.x parent, Java 17, Lombok >=1.18.26), CI workflow (checkout@v4, setup-java@v4, temurin, java-version 17, cache: maven), Endpoint smoke tests (GET /api/greet 200, GET /api/users 401/200, POST /api/users 201/400, GET /api/users/{id} 404), and final grep-based sanity checks.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Base this page on docs/post-upgrade-checklist.md. Every item MUST be rendered as a GitHub markdown checkbox '- [ ]'. Preserve the grep commands verbatim. Include the 'Sign-off' paragraph at the bottom."}
+      ]
+    },
+    {
+      "title": "Troubleshooting & Common Errors",
+      "purpose": "Catalogue of real error messages and their fixes during the upgrade: (1) NoClassDefFoundError: javax/persistence/Entity -> javax -> jakarta rewrite, (2) IllegalAccessError in lombok.javac.apt.LombokProcessor -> bump Lombok to 1.18.26+, (3) WebSecurityConfigurerAdapter deprecated/removed -> SecurityFilterChain bean, (4) antMatchers() not found -> requestMatchers(), (5) No implementation was created for UserMapper -> fix annotationProcessorPaths order, (6) JUnit 4 InvalidTestClassError / vintage engine missing -> migrate to JUnit 5 or add vintage engine, (7) CI bonus: setup-java@v2 deprecated -> @v4 + temurin + cache: maven.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Base this page on docs/troubleshooting.md. Each section MUST include (a) 'What you see' with the exact error text in a ``` block, (b) 'Why it happens' with cause and a code/file reference, (c) 'Fix' with a concrete diff or rewrite snippet, (d) a 'Sources:' list. Preserve the ordering (1..7)."}
+      ]
+    },
+    {
+      "title": "Known Limitations & Technical Debt",
+      "purpose": "Catalogue deliberate simplifications in the baseline that should NOT survive into production: CSRF disabled (SecurityConfig.java line 15), hardcoded plaintext credentials (application.yml lines 12-13), no Spring Profiles (single application.yml), equals/hashCode on nullable id (User.java lines 43-54), no @ControllerAdvice for centralized error handling, no structured logging, no HTTP test for GreetingController.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Base this page on docs/known-limitations.md. For each item include Where (with exact file:line), What it means, and What to do in production. Include the 'Out of scope' list at the bottom (connection pooling, caching, rate limiting, actuator, OpenAPI, multi-tenancy, containerization)."}
+      ]
+    },
+    {
+      "title": "Glossary",
+      "purpose": "Glossary of project-specific terms: annotation processor, jakarta.*, javax.*, WebSecurityConfigurerAdapter, SecurityFilterChain, HTTP Basic, JPA, Hibernate, MapStruct, Lombok, H2, Maven wrapper, JUnit Vintage, GenerationType.IDENTITY.",
+      "parent": null,
+      "page_notes": [
+        {"content": "Keep entries short (1-3 sentences). Where applicable, link to the page that covers the term in depth (e.g. WebSecurityConfigurerAdapter -> Security Configuration and Upgrade Guide)."}
+      ]
+    }
+  ]
+}
